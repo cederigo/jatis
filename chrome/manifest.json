@@ -1,0 +1,25 @@
+{
+  "manifest_version": 2,
+  "name": "JavaDoc - Lookup methods easier",
+  "description": "Find popular methods on top of each class (based on usage statistics)",
+  "version": "0.1",
+  "author": "Cédric Reginster<cedric.reginster@gmail.com>",
+  "icons": {
+    "16": "icon16.png",
+    "48": "icon48.png",
+    "128": "icon128.png"
+  },
+  "background": {
+    "persistent": false,
+    "scripts": ["background.js"]
+  },
+  "permissions": [
+    "http://unibe.ch/api/whatever/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": ["http://docs.oracle.com/*", "https://docs.oragle.com/*"],
+      "js" : ["content.js"]
+    }
+  ]
+}
