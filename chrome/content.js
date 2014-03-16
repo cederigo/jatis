@@ -6,25 +6,41 @@
 'use strict';
 
 var
-  wrapper = '<div class="popular"><ul class="blockList"><li class="blockList"><ul class="blockList"><li id="popular" class="blockList"></li></ul></li></ul></div>',
+  db = window.db,
+  template = window.template,
   $ = window.jQuery;
 
-/*
- * we are triggered on all frames, so first check that we are on interesting one
- * based on highlighted top navigation element ;-)
- */
-var type = $('.navBarCell1Rev').html(); // [package,Class]
-
-//type class includes Interfaces
-if (type !== 'Class') {
-  //do nothing
-  return true;
+function copy_method ($dest) {
+  return function () {
+    var $m = $('a[href*="' + this + '"]').closest('tr');
+    $dest.append($m.clone());
+  };
 }
 
-//our wrapper
-$('.summary').before($(wrapper));
+function init () {
+  var
+    name = $('.inheritance > li:last').html(), //ex. java.lang.String
+    methods = db[name].methods;
 
-$('#popular').html('<h3>Popular</h3>');
+  console.log('popular methods: ', methods);
+
+  //wrapper
+  $('.summary').before($(template));
+
+  //copy methods over to wrapper template
+  $.each(methods, copy_method($('#popular-methods')));
+
+}
+
+/*
+ * we are triggered on all frames, so first check that we are on the right one;
+ * based on highlighted top navigation element ;-)
+ * note: type 'Class' is for classes & interfaces
+ */
+var type = $('.navBarCell1Rev').html(); // [package,Class]
+if (type === 'Class') {
+  init();
+}
 
 //we can communicate with our background script ;-)
 //http://developer.chrome.com/extensions/messaging
