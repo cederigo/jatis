@@ -11,24 +11,25 @@ var
   $ = window.jQuery;
 
 function copy_method ($dest) {
-  return function () {
-    var $m = $('a[href*="' + this + '"]').closest('tr');
-    $dest.append($m.clone());
+  return function (index) {
+    var $m = $('a[href*="' + this + '"]').closest('tr').clone();
+    $m.removeClass('altColor rowColor');
+    $m.addClass(index % 2 ===  0 ? 'altColor' : 'rowColor');
+    $dest.append($m);
   };
 }
 
-function init () {
+function render () {
   var
     name = $('.inheritance > li:last').html(), //ex. java.lang.String
-    methods = db[name].methods;
+    methods = db[name].methods,
+    $tpl = $(template);
 
-  console.log('popular methods: ', methods);
+  //fill template with popular methods
+  $.each(methods, copy_method($tpl.find('#popular-methods')));
 
-  //wrapper
-  $('.summary').before($(template));
-
-  //copy methods over to wrapper template
-  $.each(methods, copy_method($('#popular-methods')));
+  //insert in existing dom
+  $('.description').before($tpl);
 
 }
 
@@ -39,7 +40,7 @@ function init () {
  */
 var type = $('.navBarCell1Rev').html(); // [package,Class]
 if (type === 'Class') {
-  init();
+  render();
 }
 
 //we can communicate with our background script ;-)
