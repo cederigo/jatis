@@ -1,6 +1,6 @@
 {
   "manifest_version": 2,
-  "name": "JavaDoc - Lookup methods easier",
+  "name": "jatis - JavaDoc statistics",
   "description": "Find popular methods on top of each class (based on usage statistics)",
   "version": "0.1",
   "author": "Cédric Reginster<cedric.reginster@gmail.com>",
