@@ -6,8 +6,8 @@
 'use strict';
 
 var
-  db = window.db,
   template = window.template,
+  server = window.server,
   $ = window.jQuery;
 
 function copy_method ($dest) {
@@ -19,17 +19,25 @@ function copy_method ($dest) {
   };
 }
 
+
 function render () {
   var
     name = $('.inheritance > li:last').html(), //ex. java.lang.String
-    methods = db[name].methods,
     $tpl = $(template);
 
-  //fill template with popular methods
-  $.each(methods, copy_method($tpl.find('#popular-methods')));
+  //get methods
+  server.methods(name, function (methods) {
 
-  //insert in existing dom
-  $('.description').before($tpl);
+    //top 5
+    methods = methods.slice(0,5);
+
+    //fill template with popular methods
+    $.each(methods, copy_method($tpl.find('#popular-methods')));
+
+    //insert in existing dom
+    $('.description').before($tpl);
+
+  });
 
 }
 
