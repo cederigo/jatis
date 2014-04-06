@@ -28,8 +28,16 @@ function render () {
   //get methods
   server.methods(name, function (methods) {
 
+    if (!methods.length) {
+      //do nothing
+      return;
+    }
+
     //top 5
     methods = methods.slice(0,5);
+
+    //hack: missing space after comma
+    methods = methods.map(function (item){ return item.replace(/,/g, ', ');});
 
     //fill template with popular methods
     $.each(methods, copy_method($tpl.find('#popular-methods')));
