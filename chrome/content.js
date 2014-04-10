@@ -49,6 +49,12 @@ function render () {
 
 }
 
+function sendMessage(type) {
+  chrome.runtime.sendMessage({type: type}, function(response) {
+    console.log('got response: ' + response);
+  });
+}
+
 /*
  * we are triggered on all frames, so first check that we are on the right one;
  * based on highlighted top navigation element ;-)
@@ -56,6 +62,7 @@ function render () {
  */
 var type = $('.navBarCell1Rev').html(); // [package,Class]
 if (type === 'Class') {
+  sendMessage('showPageAction');
   render();
 }
 
