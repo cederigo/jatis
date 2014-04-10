@@ -10,6 +10,12 @@ var
   server = window.server,
   $ = window.jQuery;
 
+function sendMessage(type) {
+  chrome.runtime.sendMessage({type: type}, function(response) {
+    console.log('got response: ' + response);
+  });
+}
+
 function copy_method ($dest) {
   return function (index) {
     var $m = $('a[href*="' + this + '"]').closest('tr').clone();
@@ -18,7 +24,6 @@ function copy_method ($dest) {
     $dest.append($m);
   };
 }
-
 
 function render () {
   var
@@ -33,6 +38,7 @@ function render () {
       return;
     }
 
+
     //top 5
     methods = methods.slice(0,5);
 
@@ -42,18 +48,19 @@ function render () {
     //fill template with popular methods
     $.each(methods, copy_method($tpl.find('#popular-methods')));
 
+    //visual something
+    sendMessage('showPageAction');
+    $tpl.find('.title').prepend($('<img>').attr('src', chrome.extension.getURL('icon48.png')));
+
     //insert in existing dom
     $('.description').before($tpl);
 
+    
+
   });
 
 }
 
-function sendMessage(type) {
-  chrome.runtime.sendMessage({type: type}, function(response) {
-    console.log('got response: ' + response);
-  });
-}
 
 /*
  * we are triggered on all frames, so first check that we are on the right one;
@@ -62,7 +69,6 @@ function sendMessage(type) {
  */
 var type = $('.navBarCell1Rev').html(); // [package,Class]
 if (type === 'Class') {
-  sendMessage('showPageAction');
   render();
 }
 
