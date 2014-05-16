@@ -8,8 +8,7 @@
 var
   template = window.template,
   server = window.server,
-  $ = window.jQuery,
-  methods = {}; //lookup methods by signature
+  $ = window.jQuery;
 
 function sendMessage(type) {
   chrome.runtime.sendMessage({type: type}, function(response) {
@@ -17,53 +16,88 @@ function sendMessage(type) {
   });
 }
 
-function copy_method ($dest) {
-  return function (index) {
-    console.log('copy method: ', this);
-    var $m = $(methods[this]).clone();
-    $m.removeClass('altColor rowColor');
-    $m.addClass(index % 2 ===  0 ? 'altColor' : 'rowColor');
-    $dest.append($m);
-  };
-}
-
 /*
  * find all methods in DOM and make them accessible by their signature.
  * TODO: find methods up the inheritance tree
  */
-function populate_methods () {
+function extract_methods (pages) {
 
-  $('.overviewSummary[summary^="Method"] tr')
-    .each(function () {
-      var
-        href = $(this).find('.colLast a').attr('href'),
-        sig = '';
+  var methods = {};
 
-      if (href && href.indexOf('#') >= 0) {
-        sig = href.replace(/.*#/g, '');
+  $.each(pages, function (idx, html) {
+  
+    $(html).find('.overviewSummary[summary^="Method"] tr')
+      .each(function () {
+        var
+          href = $(this).find('.colLast a').attr('href'),
+          sig = '';
 
-        console.log('signature (original): ', sig);
+        if (href && href.indexOf('#') >= 0) {
+          sig = href.replace(/.*#/g, '');
 
-        //HACK 1: transform method signature so that the arguments are not fully qualified class names
-        //HACK 2: remove space after comma
-        //ex: startsWith(java.lang.String, int) -> startsWith(String,int)
-        sig = sig.replace(/[\w.]*\./g, '');
-        sig = sig.replace(/, /g,',');
+          //HACK 1: transform method signature so that the arguments are not fully qualified class names
+          //HACK 2: remove space after comma
+          //ex: startsWith(java.lang.String, int) -> startsWith(String,int)
+          sig = sig.replace(/[\w.]*\./g, '');
+          sig = sig.replace(/, /g,',');
 
-        console.log('signature (transformed): ', sig);
-
-        //lookup by signature
-        methods[sig] = this;
+          //lookup by signature
+          methods[sig] = this;
+        }
       }
+    );
+  });
+
+  return methods;
+
+}
+
+function inheritance () {
+
+  var result = [];
+
+  $('.inheritance').each(function () {
+    result.push($(this).find('> li:first').text().trim());
+  });
+
+  return result;
+
+}
+
+/*
+ * download content up the inheritance `tree`.
+ * @param {Array} tree - class names to download
+ * @param {Function} cb - callback to call when we are done
+ */
+
+function download(tree, cb) {
+
+  var countdown = tree.length;
+  var baseUrl = location.href.replace(/api.*/, 'api/');
+  var result = [];
+
+  function callback(data) {
+    countdown--;
+    result.push(data);
+    if (countdown >= 0) {
+      //we are done
+      return cb(result);
     }
-  );
+  }
+
+  $.each(tree, function (idx, el) {
+    var url = baseUrl + el.replace(/\./g,'/') + '.html';
+    $.get(url, callback);
+  });
+
 
 }
 
 function render () {
   var
-    name = $('.inheritance > li:last').html(), //ex. java.lang.String
-    $tpl = $(template);
+    tree = inheritance(),
+    $tpl = $(template),
+    us = tree.pop(); //our name ex: java.lang.String
 
   //visual something
   sendMessage('showPageAction');
@@ -75,34 +109,43 @@ function render () {
     $(this).hide();
   });
 
-  //insert in existing dom
-  $('.description').before($tpl);
-
-  populate_methods();
-
-  if (!name) {
+  if (!us) {
     console.log('oops. class name not found');
     return $tpl.find('.info').html('Nothing found ;-(');
   }
 
-  //get methods
-  server.methods(name, function (methods) {
+  console.log('going for: ' + us);
 
-    if (!methods.length) {
-      //do nothing
-      return $tpl.find('.info').html('Nothing found ;-(');
-    }
+  download(tree, function (pages){
+    //add ourself
+    pages.push(document.documentElement.outerHTML);
 
-    $tpl.find('.info').empty();
+    var methodTemplates = extract_methods(pages);
+    //insert in existing dom
+    $('.description').before($tpl);
 
-    //top 5
-    //methods = methods.slice(0,5);
+    //get methods
+    server.methods(us, function (methods) {
 
-    //fill template with popular methods
-    $.each(methods, copy_method($tpl.find('#popular-methods')));
+      if (!methods.length) {
+        //do nothing
+        return $tpl.find('.info').html('Nothing found ;-(');
+      }
 
+      $tpl.find('.info').empty();
+
+      //fill template with popular methods
+      var $dest = $tpl.find('#popular-methods');
+      $.each(methods, function (index, sig) {
+        console.log('copy: ' + sig);
+        var $m = $(methodTemplates[sig]).clone();
+        $m.removeClass('altColor rowColor');
+        $m.addClass(index % 2 ===  0 ? 'altColor' : 'rowColor');
+        $dest.append($m);
+      });
+
+    });
   });
-
 
 }
 
