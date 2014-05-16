@@ -69,6 +69,11 @@ function render () {
   sendMessage('showPageAction');
   $tpl.find('.title').prepend($('<img>').attr('src', chrome.extension.getURL('icon48.png')));
   $tpl.find('.info').html('Loading...');
+  $tpl.find('.btn-more').click(function (e) {
+    e.preventDefault();
+    $tpl.find('.popular-height').css('height', 'auto');
+    $(this).hide();
+  });
 
   //insert in existing dom
   $('.description').before($tpl);
@@ -91,7 +96,7 @@ function render () {
     $tpl.find('.info').empty();
 
     //top 5
-    methods = methods.slice(0,5);
+    //methods = methods.slice(0,5);
 
     //fill template with popular methods
     $.each(methods, copy_method($tpl.find('#popular-methods')));
