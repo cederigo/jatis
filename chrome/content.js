@@ -8,7 +8,8 @@
 var
   template = window.template,
   server = window.server,
-  $ = window.jQuery;
+  $ = window.jQuery,
+  version =  window.versions.current();
 
 function sendMessage(type) {
   chrome.runtime.sendMessage({type: type}, function(response) {
@@ -25,7 +26,7 @@ function extract_methods (pages) {
 
   $.each(pages, function (idx, html) {
 
-    $(html).find('.overviewSummary[summary^="Method"] tr')
+    $(html).find(version.methods)
       .each(function () {
         var
           href = $(this).find('.colLast a').attr('href'),
@@ -58,6 +59,8 @@ function inheritance () {
   $('.inheritance').each(function () {
     result.push($(this).find('> li:first').text().trim());
   });
+
+  console.log('found inheritance: ' + result);
 
   return result;
 
@@ -217,9 +220,12 @@ function render () {
  * based on highlighted top navigation element ;-)
  * note: type 'Class' is for classes & interfaces
  */
-var type = $('.navBarCell1Rev').html(); // [package,Class]
+
+var type = $(version.type).text(); // [package,Class]
 if (type === 'Class') {
   render();
+} else {
+  console.log('invalid type: ' + type);
 }
 
 //we can communicate with our background script ;-)

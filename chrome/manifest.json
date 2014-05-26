@@ -20,7 +20,15 @@
     {
       "all_frames": true,
       "matches": ["http://docs.oracle.com/javase/*"],
-      "js" : [ "jquery-1.11.0.min.js","server.js", "template.js", "content.js"]
+      "js" : [ "jquery-1.11.0.min.js",
+               "server.js",
+               "template.js",
+               "versions.js",
+               "versions/6.js",
+               "versions/7.js",
+               "versions/8.js",
+               "content.js"
+               ]
     }
   ],
   "page_action": {
