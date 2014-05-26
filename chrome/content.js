@@ -139,6 +139,26 @@ function fill ($container, methods, templates, parentTemplates) {
 
 }
 
+function moreLess($container) {
+
+  var origHeight = $container.height();
+  var offsetTop = $container.scrollTop();
+
+  return function (e) {
+    var $this = $(this);
+    var less = $this.data('less') || false;
+
+    e.preventDefault();
+    $container.css('height', less ? origHeight + 'px' : 'auto');
+    $this.data('less', !less);
+    $this.html(less ? 'More' : 'Less');
+    if (less) {
+      $('body,html').scrollTop(offsetTop);
+    }
+  };
+
+}
+
 function render () {
   var
     tree = inheritance(),
@@ -151,11 +171,9 @@ function render () {
   $('.description').before($tpl);
   $tpl.find('.title').prepend($('<img>').attr('src', chrome.extension.getURL('icon48.png')));
   $tpl.find('.info').html('Loading...');
-  $tpl.find('.btn-more').click(function (e) {
-    e.preventDefault();
-    $tpl.find('.popular-height').css('height', 'auto');
-    $(this).hide();
-  });
+  //more less
+  $tpl.find('.btn-more').click(moreLess($tpl.find('.popular-height')));
+
 
   if (!us) {
     console.log('oops. class name not found');
