@@ -169,7 +169,12 @@ function render () {
   sendMessage('showPageAction');
   //insert in existing dom
   $('.description').before($tpl);
-  $tpl.find('.title').prepend($('<img>').attr('src', chrome.extension.getURL('icon48.png')));
+  $tpl.find('.title')
+      .prepend(
+          $('<img>')
+            .attr('src', chrome.extension.getURL('icon48.png'))
+            .css('max-height', '20px')
+      );
   $tpl.find('.info').html('Loading...');
   //more less
   $tpl.find('.btn-more').click(moreLess($tpl.find('.popular-height')));
@@ -195,9 +200,9 @@ function render () {
         return $tpl.find('.info').html('Nothing found ;-(');
       }
 
-      console.log(methods);
-
       $tpl.find('.info').empty();
+      $tpl.find('.popular-height').show();
+      $tpl.find('.btn-more').css('display', 'block');
 
       fill($tpl, methods, templates, parentTemplates);
 
