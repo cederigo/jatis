@@ -18,14 +18,13 @@ function sendMessage(type) {
 
 /*
  * find all methods in DOM and make them accessible by their signature.
- * TODO: find methods up the inheritance tree
  */
 function extract_methods (pages) {
 
   var methods = {};
 
   $.each(pages, function (idx, html) {
-  
+
     $(html).find('.overviewSummary[summary^="Method"] tr')
       .each(function () {
         var
@@ -79,15 +78,62 @@ function download(tree, cb) {
   function callback(data) {
     countdown--;
     result.push(data);
-    if (countdown >= 0) {
+    if (countdown <= 0) {
       //we are done
       return cb(result);
     }
   }
 
+  //empty tree
+  if(countdown <= 0) {
+    return cb(result);
+  }
+
   $.each(tree, function (idx, el) {
     var url = baseUrl + el.replace(/\./g,'/') + '.html';
     $.get(url, callback);
+  });
+
+}
+
+function fill ($container, methods, templates, parentTemplates) {
+
+  var $dest = $container.find('#popular-methods');
+
+  //walk up the inheritance tree
+  function find (sig) {
+
+    var tpl;
+    [templates, parentTemplates].every(function (lookup) {
+      tpl = lookup[sig];
+      if (tpl) {
+        //found, make sure we dont find it again
+        lookup[sig] = false;
+        //break
+        return false;
+      }
+      return true;
+    });
+
+    return tpl;
+
+  }
+
+  var count = 0;
+
+  $.each(methods, function (idx, sig) {
+
+    var tpl = find(sig);
+
+    if (!tpl) {
+      console.log('warn: no template for method ' + sig + ' found');
+      return;
+    }
+
+    var $tpl = $(tpl);
+    $tpl.removeClass('altColor rowColor');
+    $tpl.addClass(count++ % 2 ===  0 ? 'altColor' : 'rowColor');
+    $dest.append($tpl);
   });
 
 
@@ -101,6 +147,8 @@ function render () {
 
   //visual something
   sendMessage('showPageAction');
+  //insert in existing dom
+  $('.description').before($tpl);
   $tpl.find('.title').prepend($('<img>').attr('src', chrome.extension.getURL('icon48.png')));
   $tpl.find('.info').html('Loading...');
   $tpl.find('.btn-more').click(function (e) {
@@ -114,15 +162,12 @@ function render () {
     return $tpl.find('.info').html('Nothing found ;-(');
   }
 
-  console.log('going for: ' + us);
-
   download(tree, function (pages){
     //add ourself
-    pages.push(document.documentElement.outerHTML);
 
-    var methodTemplates = extract_methods(pages);
-    //insert in existing dom
-    $('.description').before($tpl);
+    var parentTemplates = extract_methods(pages);
+    var templates = extract_methods([document.documentElement.outerHTML]);
+
 
     //get methods
     server.methods(us, function (methods) {
@@ -132,17 +177,11 @@ function render () {
         return $tpl.find('.info').html('Nothing found ;-(');
       }
 
+      console.log(methods);
+
       $tpl.find('.info').empty();
 
-      //fill template with popular methods
-      var $dest = $tpl.find('#popular-methods');
-      $.each(methods, function (index, sig) {
-        console.log('copy: ' + sig);
-        var $m = $(methodTemplates[sig]).clone();
-        $m.removeClass('altColor rowColor');
-        $m.addClass(index % 2 ===  0 ? 'altColor' : 'rowColor');
-        $dest.append($m);
-      });
+      fill($tpl, methods, templates, parentTemplates);
 
     });
   });
