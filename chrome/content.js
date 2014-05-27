@@ -37,7 +37,7 @@ function moreLess($container) {
 
 }
 
-function render (jdoc) {
+function enhance(jdoc) {
 
   var $tpl = $(template);
 
@@ -94,6 +94,6 @@ Jdoc.init(document.documentElement.outerHTML, function (err, jdoc) {
     return console.warn('could not init jdoc: ' + err);
   }
 
-  render(jdoc);
+  enhance(jdoc);
 
 });
