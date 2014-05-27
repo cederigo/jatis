@@ -81,7 +81,7 @@
     var version = /javase\/(\d)\//.exec(location.pathname)[1];
     var constructor = 'Jdoc' + version;
     if (!global[constructor]) {
-      throw new Error('invalid version ' + version);
+      throw new Error('version ' + version + ' not implemented');
     }
     return new global[constructor](html);
   };
