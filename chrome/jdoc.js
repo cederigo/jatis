@@ -5,7 +5,7 @@
   var $ = global.jQuery;
 
   function Jdoc (html) {
-    this.html = html;
+    this.$html = $(html);
     this.parent = null;
     this.flagged = {};
   }
@@ -34,7 +34,7 @@
 
     },
     $$: function (selector) {
-      return $(this.html).find(selector);
+      return this.$html.find(selector);
     },
     parentNames: function () {
       return this._inheritanceTree().slice(0,-1);
