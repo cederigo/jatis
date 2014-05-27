@@ -6,67 +6,72 @@
 
   function Jdoc (html) {
     this.html = html;
-    this.parents = [];
+    this.parent = null;
+    this.flagged = {};
   }
 
   Jdoc.prototype = {
 
     //to be implemented by children
-    type: function () { throw new Error('not implemented');},
-    version: function () { throw new Error('not implemented');},
-    methodDescription: function (sig) { throw new Error('not implemented ' + sig);},
-    inheritanceTree: function () { throw new Error('not implemented');},
+    _type: function () { throw new Error('not implemented');},
+    _version: function () { throw new Error('not implemented');},
+    _methodDescription: function (sig) { throw new Error('not implemented ' + sig);},
+    _inheritanceTree: function () { throw new Error('not implemented');},
 
-    template: function () {
-      throw new Error('not implemented');
+    //public
+    methodDescription: function (sig, idx) {
+      var m = this._methodDescription(sig, idx);
+      if (m && !this.flagged[sig]) {
+        //mark as used
+        this.flagged[sig] = true;
+        return m;
+      }
+      if (this.parent) {
+        return this.parent.methodDescription(sig, idx);
+      }
+
+      return null;
+
     },
     $$: function (selector) {
       return $(this.html).find(selector);
     },
     parentNames: function () {
-      return this.inheritanceTree().slice(0,-1);
+      return this._inheritanceTree().slice(0,-1);
     },
-    parents: function () {
-      return this.parents;
+    parentName: function () {
+      return this.parentNames().pop();
+    },
+    parent: function () {
+      return this.parent;
     },
     valid: function () {
-      return this.type() === 'Class';
+      return this._type() === 'Class';
     },
     name: function () {
-      return this.inheritanceTree().pop();
+      return this._inheritanceTree().pop();
     },
 
-    //private
-    _fetchParents: function (cb) {
-
+    _fetchParent: function (cb, leaf) {
       var self = this;
-
-      self.parents = [];
-
-      var parentNames = this.parentNames();
-      var countdown = parentNames.length;
       var baseUrl = location.href.replace(/api.*/, 'api/');
+      var url;
 
-      function callback(data) {
-        countdown--;
-        self.parents.push(Jdoc._instance(data));
-        if (countdown <= 0) {
-          //we are done
-          return cb(null, self);
-        }
+      if (!self.parentName()) {
+        return cb(null, leaf || self);
       }
 
-      //no parents
-      if(countdown <= 0) {
-        return cb(null, self);
-      }
+      url = baseUrl + self.parentName().replace(/\./g,'/') + '.html';
 
-      $.each(parentNames, function (idx, el) {
-        var url = baseUrl + el.replace(/\./g,'/') + '.html';
-        $.get(url, callback);
+      $.get(url, function (data){
+        var parent = Jdoc._instance(data);
+        self.parent = parent;
+        //recursion
+        parent._fetchParent(cb, leaf ? leaf : self);
       });
-    
+
     }
+
 
   };
 
@@ -87,7 +92,7 @@
     if (!jdoc.valid()) {
       return done(new Error('invalid javadoc'));
     }
-    jdoc._fetchParents(done);
+    jdoc._fetchParent(done);
 
   };
 

@@ -16,15 +16,15 @@
 
     __proto__: Jdoc.prototype, //inheritance
 
-    version: function () {
+    _version: function () {
       return '7';
     },
 
-    type: function () {
+    _type: function () {
       return this.$$('.navBarCell1Rev:first').html();
     },
 
-    inheritanceTree: function () {
+    _inheritanceTree: function () {
       var result = [];
 
       this.$$('.inheritance').each(function () {
@@ -34,7 +34,7 @@
       return result;
     },
 
-    methodDescription: function (sig, idx) {
+    _methodDescription: function (sig, idx) {
       var md = this.methods[sig];
 
       if(!md) { return null; }
@@ -45,7 +45,6 @@
       return $md;
     },
 
-    //private
     _extractMethods: function () {
       var result = {};
 
