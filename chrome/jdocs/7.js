@@ -27,7 +27,11 @@
     var result = [];
 
     this.$$('.inheritance').each(function () {
-      result.push($(this).find('> li:first').text().trim());
+      var name = $(this).find('> li:first').text().trim();
+      //HACK
+      //ex. java.lang.ArrayList<T> -> java.lang.ArrayList
+      name = name.replace(/<.*>/, '');
+      result.push(name);
     });
 
     return result;

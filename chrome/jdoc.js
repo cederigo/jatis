@@ -55,13 +55,14 @@
     _fetchParent: function (cb, leaf) {
       var self = this;
       var baseUrl = location.href.replace(/api.*/, 'api/');
+      var parentName = self.parentName();
       var url;
 
-      if (!self.parentName()) {
+      if (!parentName) {
         return cb(null, leaf || self);
       }
 
-      url = baseUrl + self.parentName().replace(/\./g,'/') + '.html';
+      url = baseUrl + parentName.replace(/\./g,'/') + '.html';
 
       $.get(url, function (data){
         var parent = Jdoc._instance(data);
