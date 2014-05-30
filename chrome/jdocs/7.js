@@ -12,63 +12,61 @@
     this.methods = this._extractMethods();
   }
 
-  Jdoc7.prototype = {
+  //inherit
+  var proto = Jdoc7.prototype = Object.create(Jdoc.prototype);
 
-    __proto__: Jdoc.prototype, //inheritance
+  proto._version = function () {
+    return '7';
+  };
 
-    _version: function () {
-      return '7';
-    },
+  proto._type = function () {
+    return this.$$('.navBarCell1Rev:first').html();
+  };
 
-    _type: function () {
-      return this.$$('.navBarCell1Rev:first').html();
-    },
+  proto._inheritanceTree = function () {
+    var result = [];
 
-    _inheritanceTree: function () {
-      var result = [];
+    this.$$('.inheritance').each(function () {
+      result.push($(this).find('> li:first').text().trim());
+    });
 
-      this.$$('.inheritance').each(function () {
-        result.push($(this).find('> li:first').text().trim());
-      });
+    return result;
+  };
 
-      return result;
-    },
+  proto._methodDescription = function (sig, idx) {
+    var md = this.methods[sig];
 
-    _methodDescription: function (sig, idx) {
-      var md = this.methods[sig];
+    if(!md) { return null; }
 
-      if(!md) { return null; }
+    var $md = $(md);
+    $md.removeClass('altColor rowColor');
+    $md.addClass(idx % 2 ===  0 ? 'altColor' : 'rowColor');
+    return $md;
+  };
 
-      var $md = $(md);
-      $md.removeClass('altColor rowColor');
-      $md.addClass(idx % 2 ===  0 ? 'altColor' : 'rowColor');
-      return $md;
-    },
+  proto._extractMethods = function () {
+    var result = {};
 
-    _extractMethods: function () {
-      var result = {};
+    this.$$('.overviewSummary[summary^="Method"] tr').each(function () {
+      var href = $(this).find('.colLast a').attr('href');
+      var sig = '';
 
-      this.$$('.overviewSummary[summary^="Method"] tr').each(function () {
-        var href = $(this).find('.colLast a').attr('href');
-        var sig = '';
+      if (href && href.indexOf('#') >= 0) {
+        sig = href.replace(/.*#/g, '');
 
-        if (href && href.indexOf('#') >= 0) {
-          sig = href.replace(/.*#/g, '');
+        //HACK 1: transform method signature so that the arguments are not fully qualified class names
+        //HACK 2: remove space after comma
+        //ex: startsWith(java.lang.String, int) -> startsWith(String,int)
+        sig = sig.replace(/[\w.]*\./g, '');
+        sig = sig.replace(/, /g,',');
 
-          //HACK 1: transform method signature so that the arguments are not fully qualified class names
-          //HACK 2: remove space after comma
-          //ex: startsWith(java.lang.String, int) -> startsWith(String,int)
-          sig = sig.replace(/[\w.]*\./g, '');
-          sig = sig.replace(/, /g,',');
+        //lookup by signature
+        result[sig] = this;
+      }
+    });
 
-          //lookup by signature
-          result[sig] = this;
-        }
-      });
+    return result;
 
-      return result;
-
-    }
   };
 
   //register
