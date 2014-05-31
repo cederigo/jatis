@@ -19,15 +19,15 @@
     _inheritanceTree: function () { throw new Error('not implemented');},
 
     //public
-    methodDescription: function (sig, idx) {
-      var m = this._methodDescription(sig, idx);
+    methodDescription: function (sig) {
+      var m = this._methodDescription(sig);
       if (m && !this.flagged[sig]) {
         //mark as used
         this.flagged[sig] = true;
         return m;
       }
       if (this.parent) {
-        return this.parent.methodDescription(sig, idx);
+        return this.parent.methodDescription(sig);
       }
 
       return null;

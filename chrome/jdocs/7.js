@@ -37,14 +37,14 @@
     return result;
   };
 
-  proto._methodDescription = function (sig, idx) {
+  proto._methodDescription = function (sig) {
     var md = this.methods[sig];
 
     if(!md) { return null; }
 
     var $md = $(md);
     $md.removeClass('altColor rowColor');
-    $md.addClass(idx % 2 ===  0 ? 'altColor' : 'rowColor');
+    $md.addClass('rowColor');
     return $md;
   };
 
