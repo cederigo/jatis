@@ -11,8 +11,7 @@ function parse(respText) {
 
   var
     data = JSON.parse(respText),
-    methods = [],
-    constructors = [];
+    members = [];
 
   if (!data.length) {
     //no good
@@ -23,12 +22,10 @@ function parse(respText) {
 
   //we want sorted arrays
   //data.selectors is a hashmap 'selector' -> invocation count
-  methods = Object.keys(data.selectors).filter(function (item) {
-    return item[0].toLowerCase() === item[0];
-  });
-
-  constructors = Object.keys(data.selectors).filter(function (item) {
-    return item[0].toLowerCase() !== item[0];
+  members = Object.keys(data.selectors).map(function (item) {
+    //HACK: remove question marks
+    //ex: printStackTrace(???) -> printStackTrace()
+    return item.replace(/\?/g, '');
   });
 
   //order by invocation count
@@ -36,10 +33,9 @@ function parse(respText) {
     return data.selectors[b] - data.selectors[a];
   }
 
-  methods.sort(compare);
-  constructors.sort(compare);
+  members.sort(compare);
 
-  return { methods: methods, constructors: constructors };
+  return members;
 }
 
 function fetch(className, cb) {
@@ -62,18 +58,17 @@ function fetch(className, cb) {
 }
 
 /*
- * get top selector `type` from `className`
+ * get top members from `className`
  *
- * @param type - `methods` or `constructors`
  * @param cb - callback to be executed
  *
  */
 
-function selectors(className, type, cb) {
+function members(className, cb) {
 
   if (cache[className]) {
     console.log('hit cache for class ' + className);
-    return cb(cache[className][type]);
+    return cb(cache[className]);
   }
 
   fetch(className, function (err, resp) {
@@ -84,22 +79,13 @@ function selectors(className, type, cb) {
     var data = parse(resp);
     //put in cache
     cache[className] = data;
-    return cb(data[type]);
+    return cb(data);
 
   });
 
 }
 
-function methods(className, cb) {
-  return selectors(className, 'methods', cb);
-}
-
-function constructors(className, cb) {
-  return selectors(className, 'constructors', cb);
-}
-
 //public api
 window.server = {
-  methods: methods,
-  constructors: constructors
+  members: members
 };
