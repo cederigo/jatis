@@ -61,8 +61,8 @@ function enhance(jdoc) {
     return $tpl.find('.info').html('Nothing found ;-(');
   }
 
-  server.methods(jdoc.name(), function (methods) {
-    if (!methods.length) {
+  server.members(jdoc.name(), function (members) {
+    if (!members.length) {
       //do nothing
       return $tpl.find('.info').html('Nothing found ;-(');
     }
@@ -72,7 +72,7 @@ function enhance(jdoc) {
     $tpl.find('.btn-more').css('display', 'block');
 
     var count = 0;
-    $.each(methods, function (idx, sig) {
+    $.each(members, function (idx, sig) {
 
       var md = jdoc.methodDescription(sig, count);
 
