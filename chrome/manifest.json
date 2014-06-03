@@ -25,6 +25,7 @@
                "template.js",
                "jdoc.js",
                "jdocs/7.js",
+               "jdocs/8.js",
                "content.js"
                ]
     }
