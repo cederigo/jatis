@@ -9,7 +9,11 @@ var
   template = window.template,
   server = window.server,
   $ = window.jQuery,
-  Jdoc = window.Jdoc;
+  Jdoc = window.Jdoc,
+  // ML: All messages in one place.
+  messages = {
+    'no_info': 'No sufficient stats for this class.'
+  };
 
 function sendMessage(type) {
   chrome.runtime.sendMessage({type: type}, function(response) {
@@ -58,13 +62,13 @@ function enhance(jdoc) {
 
   if (!jdoc.name()) {
     console.log('oops. class name not found');
-    return $tpl.find('.info').html('Nothing found ;-(');
+    return $tpl.find('.info').html(messages.no_info);
   }
 
   server.members(jdoc.name(), function (members) {
     if (!members.length) {
       //do nothing
-      return $tpl.find('.info').html('Nothing found ;-(');
+      return $tpl.find('.info').html(messages.no_info);
     }
 
     $tpl.find('.info').empty();
